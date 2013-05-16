@@ -26,8 +26,30 @@ public final class MLockAgent {
   private static final String ARG_FORCE = "force";
   private static final String ARG_OPTIONAL = "optional";
 
+  /**
+   * Only the value of "MCL_CURRENT" is supported because...
+   * <ul>
+   *   <li>In most situations, you want the to create the JVM with a fixed 
+   *       size heap (min==max), mlock those pages, and then do any 
+   *       mmapping of data:<ul>
+   *       <li>"The "right" solution is probably to use mlockall(MCL_CURRENT) 
+   *           on JVM start (with min heap = max heap so that gets 
+   *           pre-allocated). Then perform the mmapping."</li>
+   *       <li>"Because we don't want mmap'd data to be locked into memory – 
+   *           typical data sizes far exceed available RAM. The OS deals well 
+   *           with keeping hot mmap'd data paged in, so we want to let it do 
+   *           its job there. We just don't want it to be confused by the JVM's 
+   *           GC behavior into paging part of the JVM itself out."</li>
+   *     </ul>
+   *   </li>
+   *   <li>"...in practice, however, I can't find a single POSIX system that 
+   *       assigns different values to MCL_CURRENT or MCL_FUTURE"</li>
+   * </ul>
+   *
+   * @see https://issues.apache.org/jira/browse/CASSANDRA-1214
+   */
   private static final int MCL_CURRENT = 1;
-  private static final int MCL_FUTURE = 2;
+  //private static final int MCL_FUTURE = 2;
 
   private static native int mlockall(int flags) throws LastErrorException;
 
