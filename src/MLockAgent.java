@@ -101,7 +101,9 @@ public final class MLockAgent {
     } else if (ARG_OPTIONAL.equals(agentarg)) {
       force = false;
     } else {
-      throw new IllegalArgumentException("Unable to parse agent arg: " + agentarg);
+      throw new IllegalArgumentException
+        ("Unable to parse agent arg, legal values are '"+ARG_FORCE+
+         "' and '"+ARG_OPTIONAL+"'; arg used: " + agentarg);
     }
 
     try {
