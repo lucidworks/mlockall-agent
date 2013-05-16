@@ -17,31 +17,28 @@
  * under the License.
  */
 
-import java.util.logging.*;
-
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 
 public final class MLockAgent {
   private MLockAgent() {}
   
-  private static Logger logger = Logger.getLogger("MLockAgent");
-
   private static final int MCL_CURRENT = 1;
   private static final int MCL_FUTURE = 2;
 
   private static native int mlockall(int flags) throws LastErrorException;
 
   public static void agentmain(String arg) {
-    doWork( arg );
+    agent( arg );
   }
   public static void premain(String arg) {
-    doWork( arg );
+    agent( arg );
   }
   public static void main(String[] args) {
-    logger.info("Demo mode of mlockall...");
-    if ( doWork( null ) ) {
-      logger.info("mlockall finished, sleeping so you can observe process info");
+    System.err.println("Demo mode of mlockall...");
+    try {
+      agent( null );
+      System.err.println("mlockall finished, sleeping so you can observe process info");
       while (true) {
         try {
           Thread.sleep(Long.MAX_VALUE); 
@@ -49,73 +46,79 @@ public final class MLockAgent {
           // :NOOP:
         }
       }
-    } else {
-      logger.info("Demo mode of mlockall failed");
+    } catch (RuntimeException e) {
+      System.err.println("Demo mode of mlockall failed");
+      throw e;
     }
   }
 
   /**
-   * @return true if JNA is supported and mlockall succeeded, otherwise false 
-   *         (and details have already been logged)
+   * Execute the logic of the agent
+   *
+   * @exception UnsupportedOperationException if JNA or mlockall is not usable
    */
-  private static boolean doWork(String arg) {
+  private static void agent(String arg) {
     // :TODO: parse arg for optional vs force, future vs current
-    if (checkJna()) {
-      return doMlockall();
-    }
-    return false;
+
+    // :TODO: conditionally swallow JNA exception in optional case
+    checkJna();
+    doMlockall();
   }
 
   /**
-   * @return true if JNA seems to be supported on this platform, 
-   *         otherwise false (and details have already been logged)
+   * Tests the curent JVM for JNA support
+   *
+   * @exception UnsupportedOperationException if JNA is not usable
    */
-  private static boolean checkJna() {
+  private static void checkJna() {
     try {
       Native.register("c");
-      return true;
     } catch (NoClassDefFoundError e) {
-      logger.severe("JNA not found. Unable to use mlockall()");
+      throw new UnsupportedOperationException
+        ("JNA not found. Unable to use mlockall()", e);
     } catch (UnsatisfiedLinkError e) {
-      logger.severe("Unable to link C library. Unable to use mlockall()");
+      throw new UnsupportedOperationException
+        ("Unable to link C library. Unable to use mlockall()", e);
     } catch (NoSuchMethodError e) {
-      logger.severe("Obsolete version of JNA present; unable to register C library; unable to use mlockall(). Upgrade to JNA 3.2.7 or later");
+      throw new UnsupportedOperationException
+        ("Obsolete version of JNA present; unable to register C library; unable to use mlockall(). Upgrade to JNA 3.2.7 or later", e);
     }
-    return false;
   }
 
   /**
-   * @return true if mlockall succeeded, otherwise false 
-   *         (and details have already been logged)
+   * Invokes mlockall and checks the result status.  {@link #checkJna} 
+   * should have already been called before attempting to use this method.
+   *
+   * @exception UnsupportedOperationException if mlockall is not usable
+   * @exception IllegalStateException if mlockall encounters an error
    */
-  private static boolean doMlockall() {
+  private static void doMlockall() {
+    int result = -1;
     try {
-      int result = mlockall(MCL_CURRENT);
-      if (0 != result) {
-        logger.warning("Unexpected result from mlockall: " + result);
-        return false;
-      }
+      result = mlockall(MCL_CURRENT);
     } catch (UnsatisfiedLinkError e) {
       // WTF? why didn't checkJna catch this?
-      logger.severe("Unable to link C library. Unable to use mlockall()");
-      return false;
+      throw new UnsupportedOperationException
+        ("Unable to link C library. Unable to use mlockall");
     } catch (RuntimeException e) {
       String error = "UNKNOWN";
       if (e instanceof LastErrorException) {
         error = String.valueOf(errno((LastErrorException) e));
       }
-      logger.severe("Unable to lock JVM memory ("+error+").");
-      return false;
+      throw new IllegalStateException
+        ("Unable to lock JVM memory, error num: "+error);
     }
-    return true;
+    if (0 != result) {
+      throw new IllegalStateException
+        ("Unexpected result from mlockall: " + result);
+    }
   }
 
   private static int errno(LastErrorException e) {
     try {
       return e.getErrorCode();
     } catch (NoSuchMethodError x) {
-      logger.severe("Obsolete version of JNA present; unable to read errno; unable to use mlockall(). Upgrade to JNA 3.2.7 or later");
-      return 0;
+      throw new UnsupportedOperationException("Obsolete version of JNA present; unable to read errno; unable to use mlockall(). Upgrade to JNA 3.2.7 or later");
     }
   }
 }
