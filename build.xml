@@ -1,0 +1,71 @@
+<project name="mlockall-agent" default="jar">
+  <property name="agent.class" value="MLockAgent" />
+  <property name="agent.jar" value="build/jar/${ant.project.name}.jar" />
+
+  <!-- Give user a chance to override props without editing this file
+      (and without typing -D each time) -->
+  <property file="${basedir}/build.properties"/>
+  <property file="${user.home}/${ant.project.name}.build.properties"/>
+  <property file="${user.home}/build.properties"/>
+  
+  <!-- might be jna.jar, might be jna-3.2.7.jar ... roll with it -->
+  <basename property="jna.jar.name" file="${jna.jar.path}" />
+
+  <target name="-fail-unless-jna-property" unless="jna.jar.path">
+    <!-- TODO: use ivy to fetch explicit version of JNA and put it in 
+         build/jar for user to copy along with agent jar? 
+    -->
+    <fail>...
+
+      Building this project requires that you explicitly set the
+      property "jna.jar.path" to the JNA jar on your system.
+
+      You can do this using "ant -Djna.jar.path=... compile"
+      or by creating a build.properties file
+      (or one of several other override files, see build.xml for details)
+    </fail>
+  </target>
+
+  <target name="clean">
+    <delete dir="build"/>
+  </target>
+  
+  <target name="compile" depends="-fail-unless-jna-property">
+    <mkdir dir="build/classes"/>
+    <javac srcdir="src" 
+           destdir="build/classes"
+           classpath="${jna.jar.path}"
+           includeantruntime="false" 
+           />
+  </target>
+  
+  <target name="jar" depends="-fail-unless-jna-property,compile">
+    <mkdir dir="build/jar"/>
+    <jar destfile="${agent.jar}" 
+         basedir="build/classes">
+      <manifest>
+        <!-- NOTE: when building classpaths nto the jar, include variants, 
+             don't asume jars will never move 
+             (Really wish "java -jar foo.jar" supported "-cp" 
+             so this could all be external)
+        -->
+
+        <!-- setup the jar as an agent -->
+        <attribute name="Agent-Class" value="${agent.class}"/>
+        <attribute name="Premain-Class" value="${agent.class}"/>
+        <attribute name="Boot-Class-Path" value="${jna.jar.path} ${jna.jar.name} jna.jar"/>
+
+        <!-- setup the jar for running as a demo -->
+        <attribute name="Main-Class" value="${agent.class}"/>
+        <attribute name="Class-Path" value="${jna.jar.path} ${jna.jar.name} jna.jar"/>
+
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="run-demo">
+    <java jar="${agent.jar}"
+          fork="true"/>
+  </target>
+
+</project>
