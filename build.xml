@@ -26,20 +26,23 @@
     </fail>
   </target>
 
-  <target name="clean">
+  <target name="clean" description="Deletes build artifacts">
     <delete dir="build"/>
   </target>
   
-  <target name="compile" depends="-fail-unless-jna-property">
+  <target name="compile" description="Compiles java code"
+          depends="-fail-unless-jna-property">
     <mkdir dir="build/classes"/>
     <javac srcdir="src" 
            destdir="build/classes"
            classpath="${jna.jar.path}"
-           includeantruntime="false" 
+           includeantruntime="false"
+           debug="true"
            />
   </target>
   
-  <target name="jar" depends="-fail-unless-jna-property,compile">
+  <target name="jar" description="Creates agent jar"
+          depends="-fail-unless-jna-property,compile">
     <mkdir dir="build/jar"/>
     <jar destfile="${agent.jar}" 
          basedir="build/classes">
@@ -63,7 +66,7 @@
     </jar>
   </target>
   
-  <target name="run-demo">
+  <target name="run-demo" description="Runs the agent in demo mode">
     <java jar="${agent.jar}"
           fork="true"/>
   </target>
