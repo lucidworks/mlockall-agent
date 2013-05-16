@@ -23,6 +23,9 @@ import com.sun.jna.Native;
 public final class MLockAgent {
   private MLockAgent() {}
   
+  private static final String ARG_FORCE = "force";
+  private static final String ARG_OPTIONAL = "optional";
+
   private static final int MCL_CURRENT = 1;
   private static final int MCL_FUTURE = 2;
 
@@ -36,8 +39,13 @@ public final class MLockAgent {
   }
   public static void main(String[] args) {
     System.err.println("Demo mode of mlockall...");
+    if (1 < args.length) {
+      throw new IllegalArgumentException
+        ("At most one command line arg may be specified");
+    } 
+    final String input = (0 == args.length) ? ARG_FORCE : args[0];
     try {
-      agent( null );
+      agent( input );
       System.err.println("mlockall finished, sleeping so you can observe process info");
       while (true) {
         try {
@@ -53,65 +61,65 @@ public final class MLockAgent {
   }
 
   /**
-   * Execute the logic of the agent
+   * Invokes mlockall and checks the result status.  
+
    *
+   * @param agentarg The arg string passed to this agent, may be "force" or 
+   *                 "optional" to control what type of error checking is done
    * @exception UnsupportedOperationException if JNA or mlockall is not usable
-   */
-  private static void agent(String arg) {
-    // :TODO: parse arg for optional vs force, future vs current
-
-    // :TODO: conditionally swallow JNA exception in optional case
-    checkJna();
-    doMlockall();
-  }
-
-  /**
-   * Tests the curent JVM for JNA support
-   *
-   * @exception UnsupportedOperationException if JNA is not usable
-   */
-  private static void checkJna() {
-    try {
-      Native.register("c");
-    } catch (NoClassDefFoundError e) {
-      throw new UnsupportedOperationException
-        ("JNA not found. Unable to use mlockall()", e);
-    } catch (UnsatisfiedLinkError e) {
-      throw new UnsupportedOperationException
-        ("Unable to link C library. Unable to use mlockall()", e);
-    } catch (NoSuchMethodError e) {
-      throw new UnsupportedOperationException
-        ("Obsolete version of JNA present; unable to register C library; unable to use mlockall(). Upgrade to JNA 3.2.7 or later", e);
-    }
-  }
-
-  /**
-   * Invokes mlockall and checks the result status.  {@link #checkJna} 
-   * should have already been called before attempting to use this method.
-   *
-   * @exception UnsupportedOperationException if mlockall is not usable
    * @exception IllegalStateException if mlockall encounters an error
+   * @exception IllegalArgumentException if agentarg is not recognized
+   * @see #ARG_FORCE
+   * @see #ARG_OPTIONAL
    */
-  private static void doMlockall() {
-    int result = -1;
+  private static void agent(final String agentarg) {
+    boolean force = true;
+    if (ARG_FORCE.equals(agentarg) || "".equals(agentarg) || null == agentarg) {
+      force = true;
+    } else if (ARG_OPTIONAL.equals(agentarg)) {
+      force = false;
+    } else {
+      throw new IllegalArgumentException("Unable to parse agent arg: " + agentarg);
+    }
+
     try {
-      result = mlockall(MCL_CURRENT);
-    } catch (UnsatisfiedLinkError e) {
-      // WTF? why didn't checkJna catch this?
-      throw new UnsupportedOperationException
-        ("Unable to link C library. Unable to use mlockall");
-    } catch (RuntimeException e) {
-      String error = "UNKNOWN";
-      if (e instanceof LastErrorException) {
-        error = String.valueOf(errno((LastErrorException) e));
+      try {
+        Native.register("c");
+      } catch (NoClassDefFoundError e) {
+        throw new UnsupportedOperationException
+          ("JNA not found. Unable to use mlockall()", e);
+      } catch (UnsatisfiedLinkError e) {
+        throw new UnsupportedOperationException
+          ("Unable to link C library. Unable to use mlockall()", e);
+      } catch (NoSuchMethodError e) {
+        throw new UnsupportedOperationException
+          ("Obsolete version of JNA present; unable to register C library; unable to use mlockall(). Upgrade to JNA 3.2.7 or later", e);
       }
-      throw new IllegalStateException
-        ("Unable to lock JVM memory, error num: "+error);
+
+      int result = -1;
+      try {
+        result = mlockall(MCL_CURRENT);
+      } catch (UnsatisfiedLinkError e) {
+        throw new UnsupportedOperationException
+          ("Unable to link C library. Unable to use mlockall");
+      } catch (RuntimeException e) {
+        String error = "UNKNOWN";
+        if (e instanceof LastErrorException) {
+          error = String.valueOf(errno((LastErrorException) e));
+        }
+        throw new IllegalStateException
+          ("Unable to lock JVM memory, error num: "+error);
+      }
+      if (0 != result) {
+        throw new IllegalStateException
+          ("Unexpected result from mlockall: " + result);
+      }
+
+    } catch (RuntimeException e) {
+      if (force) throw e;
+      return;
     }
-    if (0 != result) {
-      throw new IllegalStateException
-        ("Unexpected result from mlockall: " + result);
-    }
+
   }
 
   private static int errno(LastErrorException e) {
