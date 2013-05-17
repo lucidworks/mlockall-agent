@@ -4,7 +4,7 @@ ABOUT MLOCKALL AGENT
 
 mlockall-agent.jar is a Java Agent that can be used in conjunction with any 
 java application to cause the virtual memory used by the application to be 
-"locked" in memory -- preventing it from being swaped to disk.
+"locked" in memory -- preventing it from being swapped to disk.
 
 In an ideal world, any performance critical java application would be run
 on dedicated hardware with swap disabled -- but people don't always get
@@ -26,8 +26,8 @@ USING MLOCKALL AGENT
 
 To run a java application with this agent enabled:
 
- 0) ensure that your system supports mlock and that the effictive user of 
-    your java process has a sufficent ulimit for "max locked memory" 
+ 0) ensure that your system supports mlock and that the effective user of 
+    your java process has a sufficient ulimit for "max locked memory" 
     (ie: "ulimit -l")
  1) ensure that you configure the min heap size = the max heap size
  3) ensure that the "jna.jar" is either in the same directory as the 
@@ -53,7 +53,7 @@ live w/o it if there is a problem...
   $ java -Xms1024m -Xmx1024m -javaagent:lib/mlockall-agent.jar=optional -jar yourapp.jar 
 
 The mlockall-agent.jar can also be run explicitly to provide a simple 
-demo/test mode of wether mlockall() works on your system...
+demo/test mode of whether mlockall() works on your system...
 
   $ less src/MLockAgent.java 
   $ java -jar build/jar/mlockall-agent.jar 
@@ -76,7 +76,7 @@ Apache Ant is used to compile the code and assemble the agent jar file.
 
 Use "ant -p" to see the list of build options.
 
-At the present time it is neccessary for you to explicitly point the ant build 
+At the present time it is necessary for you to explicitly point the ant build 
 system to a copy of the JNA jar (using an ant build property) when compiling 
 the code, and when assembling the jar file.  Examples...
 
@@ -88,15 +88,15 @@ the code, and when assembling the jar file.  Examples...
   $ ant clean compile
   $ ant jar
 
-Because of how Java Agents are loaded byt the JVM, the value of the 
+Because of how Java Agents are loaded by the JVM, the value of the 
 "jna.jar.path" used when running "ant jar" will be included in the jar 
 manifest information as part of the "Boot-Class-Path" for the agent.  
 
-At runtime, the JVM will look for the JNA jar using:
+At run time, the JVM will look for the JNA jar using:
   * "jna.jar" in the same directory as mlockall-agent.jar
-  * the name of the jar file specifed using jna.jar.path in the same 
+  * the name of the jar file specified using jna.jar.path in the same 
     directory as mlockall-agent.jar
-  * the full path of the jar file specifed using jna.jar.path 
+  * the full path of the jar file specif-ed using jna.jar.path 
 
 
 
@@ -107,19 +107,19 @@ FAQ
 
 No, mlockall-agent.jar is not a good substitute for running with swap disabled.
 If you have the resources to run your important java processes on dedicated 
-hardware with swap disabled that is recommeded instead of using this agent -- 
+hardware with swap disabled that is recommended instead of using this agent -- 
 but not everyone has that luxury, and this agent is for you.
 
 ### /proc/<pid>/status suggests that not all my heap is locked in memory?
 
 For this agent to run effectively, you must configure your JVM with an initial 
-min heap size equivilent to your max heap size, otherwise it will allocate 
+min heap size equivalent to your max heap size, otherwise it will allocate 
 additional memory (to grow the heap) after the agent has run mlockall() and 
 that new portion of the heap will not be locked into RAM.
 
 ### Why does the agent only lock memory at the start of the process?
 
-See the comments in the code related to the MCL_CURRENT constnat
+See the comments in the code related to the MCL_CURRENT constant
 
 ### I'm getting an error even though I set "ulimit -l" bigger then the heap?
 
