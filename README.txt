@@ -121,6 +121,10 @@ that new portion of the heap will not be locked into RAM.
 
 See the comments in the code related to the MCL_CURRENT constant
 
+### What about mmap'ed data?
+
+See the comments in the code related to the MCL_CURRENT constant
+
 ### I'm getting an error even though I set "ulimit -l" bigger then the heap?
 
 The heap is not the only memory in use by your java process, you need to 
