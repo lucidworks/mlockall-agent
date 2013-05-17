@@ -44,7 +44,7 @@ Example...
   $ java -Xms1024m -Xmx1024m -javaagent:lib/mlockall-agent.jar -jar yourapp.jar 
 
 By default, the agent will cause the process to fail immediately if mlockall 
-can not be used for any reason.  and "optional" argument can be added to the 
+can not be used for any reason.  An "optional" argument can be added to the 
 agent to specify that you would like it to try to run, but not fail if there 
 is any problem.  This may be useful for developing cross platform start 
 scripts where you would like a "best attempt" at locking the memory, but can 
