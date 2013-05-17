@@ -56,7 +56,7 @@
         <!-- setup the jar as an agent -->
         <attribute name="Agent-Class" value="${agent.class}"/>
         <attribute name="Premain-Class" value="${agent.class}"/>
-        <attribute name="Boot-Class-Path" value="${jna.jar.path} ${jna.jar.name} jna.jar"/>
+        <attribute name="Boot-Class-Path" value="jna.jar ${jna.jar.name} ${jna.jar.path}"/>
 
         <!-- setup the jar for running as a demo -->
         <attribute name="Main-Class" value="${agent.class}"/>
