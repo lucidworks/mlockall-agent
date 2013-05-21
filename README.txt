@@ -1,4 +1,4 @@
-
+--------------------
 ABOUT MLOCKALL AGENT
 --------------------
 
@@ -10,6 +10,9 @@ In an ideal world, any performance critical java application would be run
 on dedicated hardware with swap disabled -- but people don't always get
 to run their software in an ideal world.  So this agent fills in the gaps.
 
+
+
+------------
 REQUIREMENTS
 ------------
 
@@ -21,6 +24,8 @@ Building the code requires Java 5, Apache Ant, and a jna.jar 3.2.7 or newer
 Running the agent requires jna.jar 3.2.7 or newer
 
 
+
+--------------------
 USING MLOCKALL AGENT
 --------------------
 
@@ -69,6 +74,8 @@ demo/test mode of whether mlockall() works on your system...
   ^C
 
 
+
+-----------------------
 BUILDING AND ASSEMBLING
 -----------------------
 
@@ -100,6 +107,7 @@ At run time, the JVM will look for the JNA jar using:
 
 
 
+---
 FAQ
 ---
 
