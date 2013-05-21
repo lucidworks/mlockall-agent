@@ -10,7 +10,8 @@ In an ideal world, any performance critical java application would be run
 on dedicated hardware with swap disabled -- but people don't always get
 to run their software in an ideal world.  So this agent fills in the gaps.
 
-
+Background about the creation of this agent can be found here...
+  http://searchhub.org/2013/05/21/mlockall-for-all/
 
 ------------
 REQUIREMENTS
