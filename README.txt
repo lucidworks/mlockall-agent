@@ -31,15 +31,15 @@ USING MLOCKALL AGENT
 
 To run a java application with this agent enabled:
 
- 0) ensure that your system supports mlock and that the effective user of 
+ 0) Ensure that your system supports mlock and that the effective user of 
     your java process has a sufficient ulimit for "max locked memory" 
     (ie: "ulimit -l")
- 1) ensure that you configure the min heap size = the max heap size
- 3) ensure that the "jna.jar" is either in the same directory as the 
+ 1) Ensure that you configure the min heap size = the max heap size
+ 3) Ensure that the "jna.jar" is either in the same directory as the 
     mlockall-agent.jar, or is at the same path used when mlockall-agent.jar, 
-    was assembled. (see below)
- 2) specify the path to the mlockall-agent.jar using the "-javaagent" 
-    command line switch.
+    was assembled  (see below)
+ 2) Specify the path to the mlockall-agent.jar using the "-javaagent" 
+    command line switch
 
 Example...
 
@@ -101,9 +101,9 @@ manifest information as part of the "Boot-Class-Path" for the agent.
 
 At run time, the JVM will look for the JNA jar using:
   * "jna.jar" in the same directory as mlockall-agent.jar
-  * the name of the jar file specified using jna.jar.path in the same 
+  * The name of the jar file specified using jna.jar.path in the same 
     directory as mlockall-agent.jar
-  * the full path of the jar file specif-ed using jna.jar.path 
+  * The full path of the jar file specif-ed using jna.jar.path 
 
 
 
